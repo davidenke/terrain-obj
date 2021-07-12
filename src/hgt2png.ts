@@ -1,8 +1,7 @@
-import {readFileSync, WriteStream} from 'fs';
-import {resolve} from 'path';
-import {Bounds, Coords, Hgt} from 'node-hgt';
+import {WriteStream} from 'fs';
+import {Coords, Hgt} from 'node-hgt';
 import {Converter} from 'proj4';
-import {crossProduct, vectorAdd, vectorSub} from './vector.utils';
+import {PNG} from 'pngjs';
 
 export function hgt2png(stream: WriteStream, proj: Converter, bounds: [Coords, Coords], elevationPath: string) {
   const llbounds = bounds.map(ll => proj.forward(ll));
@@ -26,12 +25,6 @@ export function hgt2png(stream: WriteStream, proj: Converter, bounds: [Coords, C
     throw new Error('Invalid bounds: ' + JSON.stringify(bounds) + ' (unprojected: ' + JSON.stringify(llbounds) + ')');
   }
 
-  // stream.write(readFileSync(resolve(__dirname, '../prolog.txt')));
-  // stream.write('# Bounds: ' + JSON.stringify(llbounds) + '\n');
-  // stream.write('# Projected bounds: ' + JSON.stringify(bounds) + '\n');
-  // stream.write('# ' + rows + ' rows, ' + cols + ' cols\n');
-  // stream.write('# ' + (rows * cols) + ' vertices\n\n\n');
-
   let i = 0;
   for (let row = 0; row < rows; row++) {
     lng = sw[0];
@@ -43,9 +36,46 @@ export function hgt2png(stream: WriteStream, proj: Converter, bounds: [Coords, C
     lat += step;
   }
 
-  console.log(rows, cols)
-  console.log(llbounds);
-  console.log(lls);
+  const hgt = new Hgt(elevationPath, [sw[1], sw[0]]);
+  const png = new PNG({
+    height: rows,
+    width: cols,
+  });
+  const lightest = 0;
+  const darkest = 255;
+  const deltaColor = darkest - lightest;
 
-  stream.end();
+  let index = 0;
+  const length = rows * cols;
+  const idxs = new Array(length);
+  const heights = new Array(length);
+  let min: number | undefined = undefined;
+  let max: number | undefined = undefined;
+  for (let i = 0; i < rows; i++) {
+    for (let j = 0; j < cols; j++) {
+      const idx = (cols * i + j) << 2;
+      const latLng: Coords = [lls[index][1], lls[index][0]];
+      const height = hgt.getElevation(latLng);
+      if (min === undefined || height < min) {
+        min = height;
+      }
+      if (max === undefined || height > max) {
+        max = height;
+      }
+      idxs[index] = idx;
+      heights[index] = height;
+      index++;
+    }
+  }
+  const deltaHeights = max! - min!;
+
+  for (let [index, idx] of idxs.entries()) {
+    const color = lightest + heights[index] / deltaHeights * deltaColor;
+    png.data[idx] = color;
+    png.data[idx + 1] = color;
+    png.data[idx + 2] = color;
+    png.data[idx + 3] = 255;
+  }
+
+  png.pack().pipe(stream);
 }

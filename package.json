@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Convert elevation data (typically SRTM elevation data, HGT files) to Wavefront OBJ 3D models",
   "repository": "git@github.com:perliedman/terrain-obj.git",
-  "main": "dist/index.js",
   "bin": "dist/cli.js",
   "keywords": [
     "hgt",
@@ -15,15 +14,17 @@
   "author": "Per Liedman <per@liedman.net>",
   "license": "ISC",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "start": "ts-node -p src/cli.ts"
+    "build": "tsc --project tsconfig.json",
+    "start": "ts-node --project tsconfig.json --files src/cli.ts"
   },
   "dependencies": {
     "node-hgt": "1.2.3",
+    "pngjs": "6.0.0",
     "proj4": "2.7.4"
   },
   "devDependencies": {
     "@types/node": "14.14.31",
+    "@types/pngjs": "6.0.1",
     "@types/proj4": "2.5.1",
     "ts-node": "10.1.0",
     "typescript": "4.3.5"
