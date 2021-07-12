@@ -8,11 +8,6 @@ import * as proj4 from 'proj4';
 import {hgt2obj} from './hgt2obj';
 import {hgt2png} from './hgt2png';
 
-
-// 51.07332619675687, 13.605298302404575
-// 51.07670861178793, 13.613126863128166
-// npm start ~/Downloads/N51E013.hgt ~/Downloads/N51E013.obj 51.073 13.605 51.076 13.613
-// npm start ~/Downloads/N51E013.hgt ~/Downloads/N51E013.png 51.073 13.605 51.076 13.613
 const [, , source, target, lat1, lng1, lat2, lng2, def = proj4.WGS84] = process.argv;
 const components = [lat1, lng1, lat2, lng2].map(a => parseFloat(a));
 const project = proj4(def, proj4.WGS84);
