@@ -53,15 +53,11 @@ export function hgt2png(stream: WriteStream, proj: Converter, bounds: [Coords, C
   let max: number | undefined = undefined;
   for (let i = 0; i < rows; i++) {
     for (let j = 0; j < cols; j++) {
-      const idx = (cols * i + j) << 2;
+      const idx = index << 2;
       const latLng: Coords = [lls[index][1], lls[index][0]];
       const height = hgt.getElevation(latLng);
-      if (min === undefined || height < min) {
-        min = height;
-      }
-      if (max === undefined || height > max) {
-        max = height;
-      }
+      if (min === undefined || height < min) min = height;
+      if (max === undefined || height > max) max = height;
       idxs[index] = idx;
       heights[index] = height;
       index++;
